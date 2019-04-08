@@ -1,0 +1,7 @@
+<launch>
+
+    <node pkg="camera_2d_lidar_calibration" type="camera_lidar_calibration.py" name="camera_lidar_calibration"
+          args="$(find camera_2d_lidar_calibration)/config/config.yaml $(find camera_2d_lidar_calibration)/data/data.txt $(find camera_2d_lidar_calibration)/data/calibration_result.txt"
+          output="screen">
+    </node>
+</launch>

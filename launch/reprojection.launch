@@ -1,0 +1,12 @@
+<launch>
+
+    <node name="reprojection" pkg="camera_2d_lidar_calibration" type="reprojection.py" output="screen">
+        <param name="scan_topic" value="/scan" />
+        <param name="image_topic" value="/camera/image_raw" />
+        <param name="calib_file" value="$(find camera_2d_lidar_calibration)/data/calibration_result.txt" />
+        <param name="config_file" value="$(find camera_2d_lidar_calibration)/config/config.yaml" />
+    </node>
+
+    <node name="rviz" type="rviz" pkg="rviz" args="-d $(find camera_2d_lidar_calibration)/rviz/reprojection.rviz"/>
+
+</launch>

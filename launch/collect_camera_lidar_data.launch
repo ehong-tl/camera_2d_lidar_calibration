@@ -1,0 +1,11 @@
+<launch>
+
+    <node name="collect_camera_lidar_data" pkg="camera_2d_lidar_calibration" type="collect_camera_lidar_data.py" output="screen">
+        <param name="image_topic" value="/camera/image_raw" />
+        <param name="config_file" value="$(find camera_2d_lidar_calibration)/config/config.yaml" />
+        <param name="output_file" value="$(find camera_2d_lidar_calibration)/data/data.txt" />
+    </node>
+
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find camera_2d_lidar_calibration)/rviz/show.rviz" />
+
+</launch>
