@@ -5,6 +5,28 @@ import numpy as np
 from pyquaternion import Quaternion
 import sys
 import yaml
+import math
+
+def rmse(objp, imgp, lens, K, D, rvec, tvec):
+    if lens == 'pinhole':
+        predicted, _ = cv2.projectPoints(objp, rvec, tvec, K, D)
+        predicted = cv2.undistortPoints(predicted, K, D, P=K)
+    elif lens == 'fisheye':
+        predicted, _ = cv2.fisheye.projectPoints(objp, rvec, tvec, K, D)
+        predicted = cv2.fisheye.undistortPoints(predicted, K, D, P=K)
+    predicted = predicted.squeeze()
+    imgp = imgp.squeeze()
+
+    pix_serr = []
+    for i in range(len(predicted)):
+        xp = predicted[i,0]
+        yp = predicted[i,1]
+        xo = imgp[i,0]
+        yo = imgp[i,1]
+        pix_serr.append((xp-xo)**2 + (yp-yo)**2)
+    ssum = sum(pix_serr)
+
+    return math.sqrt(ssum/len(pix_serr))
 
 if len(sys.argv) == 6:
     config_file = sys.argv[1]
@@ -46,16 +68,21 @@ with open(data_file, 'r') as f:
 imgp = np.array([imgp],dtype=np.float32)
 objp = np.array([objp],dtype=np.float32)
 
-D = np.array([0.0, 0.0, 0.0, 0.0])
-retval, rvec, tvec = cv2.solvePnP(objp,imgp,K,D,flags = cv2.SOLVEPNP_ITERATIVE)
+D_0 = np.array([0.0, 0.0, 0.0, 0.0])
+retval, rvec, tvec = cv2.solvePnP(objp,imgp,K,D_0,flags = cv2.SOLVEPNP_ITERATIVE)
 rmat, jac = cv2.Rodrigues(rvec)
 q = Quaternion(matrix=rmat)
-print "Transform from camera to laser"
-print "T = \n", tvec
-print "R = \n", rmat
-print "Quaternion = \n", q
+print("Transform from camera to laser")
+print("T = ")
+print(tvec)
+print("R = ")
+print(rmat)
+print("Quaternion = ")
+print(q)
+
+print("RMSE in pixel = %f" % rmse(objp, imgp, lens, K, D, rvec, tvec))
 
 with open(result_file, 'w') as f:
     f.write("%f %f %f %f %f %f %f" % (q.x, q.y, q.z, q.w, tvec[0], tvec[1], tvec[2]))
 
-print "Result output format: qx qy qz qw tx ty tz"
+print("Result output format: qx qy qz qw tx ty tz")
