@@ -43,7 +43,7 @@ def callback(scan, image):
     img_points = np.squeeze(img_points)
     for i in range(len(img_points)):
         try:
-            cv2.circle(img, (int(img_points[i][0]),int(img_points[i][1])), 1, (0,255,0), 1)
+            cv2.circle(img, (round(img_points[i][0]),round(img_points[i][1])), 1, (0,255,0), 1)
         except OverflowError:
             continue
     pub.publish(bridge.cv2_to_imgmsg(img))
