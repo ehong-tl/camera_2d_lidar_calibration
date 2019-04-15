@@ -43,7 +43,7 @@ def callback(scan, image):
     img_points = np.squeeze(img_points)
     for i in range(len(img_points)):
         try:
-            cv2.circle(img, (int(round(img_points[i][0])),int(round(img_points[i][1]))), 1, (0,255,0), 1)
+            cv2.circle(img, (int(round(img_points[i][0])),int(round(img_points[i][1]))), laser_point_radius, (0,255,0), 1)
         except OverflowError:
             continue
     pub.publish(bridge.cv2_to_imgmsg(img))
@@ -53,6 +53,8 @@ scan_topic = rospy.get_param("~scan_topic")
 image_topic = rospy.get_param("~image_topic")
 calib_file = rospy.get_param("~calib_file")
 config_file = rospy.get_param("~config_file")
+laser_point_radius = rospy.get_param("~laser_point_radius")
+time_diff = rospy.get_param("~time_diff")
 bridge = CvBridge()
 lp = lg.LaserProjection()
 
@@ -101,7 +103,7 @@ print(D)
 pub = rospy.Publisher("/reprojection", Image, queue_size=1)
 scan_sub = message_filters.Subscriber(scan_topic, LaserScan, queue_size=1)
 image_sub = message_filters.Subscriber(image_topic, Image, queue_size=1)
-ts = message_filters.ApproximateTimeSynchronizer([scan_sub, image_sub], 10, 0.1)
+ts = message_filters.ApproximateTimeSynchronizer([scan_sub, image_sub], 10, time_diff)
 ts.registerCallback(callback)
 
 rospy.spin()
