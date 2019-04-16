@@ -15,6 +15,9 @@ v = None
 x = None
 y = None
 
+alpha = 1.0
+beta = 0
+
 clicked = False
 fig = None
 
@@ -23,6 +26,9 @@ sub_img = np.array([])
 class matplot:
 
     def __init__(self):
+        global alpha, beta
+        alpha = 1.0
+        beta = 0
         self.create_figure()
             
     def create_figure(self):
@@ -31,8 +37,9 @@ class matplot:
             print('No image obtained.')
             return
         self.img = sub_img
+        self.img_ori = sub_img
         self.fig = plt.figure()
-        self.fig.suptitle('Laser coordinate: (%f, %f)' % (x, y))
+        self.fig.suptitle('Laser coordinate: (%f, %f)\nAlpha: %f   Beta: %d' % (x, y, alpha, beta))
         ax = self.fig.add_subplot(111)
         self.image = ax.imshow(self.img)
         self.fig.canvas.mpl_connect('button_press_event', self.onclick)
@@ -51,7 +58,7 @@ class matplot:
             plt.draw()
 
     def onkey(self, event):
-        global u, v, clicked
+        global u, v, clicked, alpha, beta
         if event.key == 'enter':
             if u == None and v == None:
                 print('No point selected. Try again.')
@@ -61,13 +68,26 @@ class matplot:
                 with open(output_file, 'a') as f:
                     f.write('%f %f %d %d\n' % (x, y, u, v))
                 u, v = None, None
+        elif event.key in ['up','down','pageup','pagedown']:
+            if event.key == 'up':
+                alpha += 0.1
+            if event.key == 'down':
+                alpha -= 0.1
+            if event.key == 'pageup':
+                beta += 10
+            if event.key == 'pagedown':
+                beta -= 10
+            self.img = cv2.addWeighted(self.img_ori, alpha, self.img_ori, 0, beta)
+            self.image.set_data(self.img)
+            self.fig.suptitle('Laser coordinate: (%f, %f)\nAlpha: %f   Beta: %d' % (x, y, alpha, beta))
+            plt.draw()
 
 def point_cb(msg):
     global x, y, clicked, fig
     x = msg.pose.position.x
     y = msg.pose.position.y
     if clicked and plt.get_fignums():
-        fig.suptitle('Laser coordinate: (%f, %f)' % (x, y))
+        fig.suptitle('Laser coordinate: (%f, %f)\nAlpha: %f   Beta: %d' % (x, y, alpha, beta))
         plt.draw()
     else:
         pass
